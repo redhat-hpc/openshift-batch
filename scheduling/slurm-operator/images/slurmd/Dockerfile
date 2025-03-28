@@ -5,7 +5,7 @@ RUN <<EOR
 set -xeuo pipefail
 dnf -q makecache --refresh
 # https://spack.readthedocs.io/en/latest/getting_started.html
-dnf -y group install "Development Tools"
-dnf -q -y install gcc-gfortran python3 unzip
+dnf -y group install "Development Tools" Base Core
+dnf -q -y install gcc-gfortran python3
 dnf clean all
 EOR
