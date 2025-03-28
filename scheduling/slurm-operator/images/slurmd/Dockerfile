@@ -5,8 +5,7 @@ RUN <<EOR
 set -xeuo pipefail
 dnf -q makecache --refresh
 # https://spack.readthedocs.io/en/latest/getting_started.html
-dnf -q -y install autoconf automake binutils make strace \
-    gcc gcc-c++ glibc-devel libtool gcc-gfortran \
-    python3 procps-ng ncurses unzip git
+dnf -q -y install libtool strace gcc-c++ gcc-gfortran \
+    python3 procps-ng ncurses unzip git bzip2 vim-enhanced file which less patch
 dnf clean all
 EOR
