@@ -1,0 +1,328 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: build-slurm
+  namespace: slurm
+spec:
+  params:
+    - default: latest
+      description: Tag for the resulting images that are built
+      name: image-tag
+      type: string
+  tasks:
+    - name: clone-slinky-containers
+      params:
+        - name: url
+          value: "https://github.com/SlinkyProject/containers"
+        - name: revision
+          value: ""
+        - name: refspec
+          value: ""
+        - name: submodules
+          value: "true"
+        - name: depth
+          value: "1"
+        - name: sslVerify
+          value: "true"
+        - name: crtFileName
+          value: ca-bundle.crt
+        - name: subdirectory
+          value: ""
+        - name: sparseCheckoutDirectories
+          value: ""
+        - name: deleteExisting
+          value: "true"
+        - name: httpProxy
+          value: ""
+        - name: httpsProxy
+          value: ""
+        - name: noProxy
+          value: ""
+        - name: verbose
+          value: "true"
+        - name: gitInitImage
+          value: "gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/git-init:v0.40.2"
+        - name: userHome
+          value: /home/git
+      taskRef:
+        kind: Task
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: slinky
+    - name: build-slurmd
+      params:
+        - name: IMAGE
+          value: "image-registry.openshift-image-registry.svc:5000/slurm/slurmd:$(params.image-tag)"
+        - name: BUILDER_IMAGE
+          value: "quay.io/buildah/stable:v1"
+        - name: STORAGE_DRIVER
+          value: overlay
+        - name: DOCKERFILE
+          value: ./Dockerfile
+        - name: CONTEXT
+          value: schedmd/slurm/master/rockylinux9
+        - name: TLSVERIFY
+          value: "true"
+        - name: FORMAT
+          value: oci
+        - name: BUILD_EXTRA_ARGS
+          value: "--target=slurmd --layers --cache-ttl=10m --cache-to image-registry.openshift-image-registry.svc:5000/slurm/cache --cache-from image-registry.openshift-image-registry.svc:5000/slurm/cache"
+        - name: PUSH_EXTRA_ARGS
+          value: "--retry 3 --retry-delay 5s"
+        - name: SKIP_PUSH
+          value: "false"
+        - name: BUILD_ARGS
+          value:
+            - "PARENT_IMAGE=quay.io/centos/centos:stream9"
+      runAfter:
+        - clone-slinky-containers
+      taskRef:
+        kind: Task
+        name: buildah
+      workspaces:
+        - name: source
+          workspace: slinky
+    - name: clone-openshift-batch
+      params:
+        - name: url
+          value: "https://github.com/naps-product-sa/openshift-batch"
+        - name: revision
+          value: slurm-operator
+        - name: refspec
+          value: ""
+        - name: submodules
+          value: "true"
+        - name: depth
+          value: "1"
+        - name: sslVerify
+          value: "true"
+        - name: crtFileName
+          value: ca-bundle.crt
+        - name: subdirectory
+          value: ""
+        - name: sparseCheckoutDirectories
+          value: ""
+        - name: deleteExisting
+          value: "true"
+        - name: httpProxy
+          value: ""
+        - name: httpsProxy
+          value: ""
+        - name: noProxy
+          value: ""
+        - name: verbose
+          value: "true"
+        - name: gitInitImage
+          value: "gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/git-init:v0.40.2"
+        - name: userHome
+          value: /home/git
+      taskRef:
+        kind: Task
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: openshift-batch
+    - name: build-custom-slurmd
+      params:
+        - name: IMAGE
+          value: "image-registry.openshift-image-registry.svc:5000/slurm/slurmd-custom:$(params.image-tag)"
+        - name: BUILDER_IMAGE
+          value: "quay.io/buildah/stable:v1"
+        - name: STORAGE_DRIVER
+          value: overlay
+        - name: DOCKERFILE
+          value: ./Dockerfile
+        - name: CONTEXT
+          value: scheduling/slurm-operator/images/slurmd
+        - name: TLSVERIFY
+          value: "true"
+        - name: FORMAT
+          value: oci
+        - name: BUILD_EXTRA_ARGS
+          value: "--from=image-registry.openshift-image-registry.svc:5000/slurm/slurmd:$(params.image-tag)"
+        - name: PUSH_EXTRA_ARGS
+          value: ""
+        - name: SKIP_PUSH
+          value: "false"
+        - name: BUILD_ARGS
+          value: []
+      runAfter:
+        - build-slurmd
+        - clone-openshift-batch
+      taskRef:
+        kind: Task
+        name: buildah
+      workspaces:
+        - name: source
+          workspace: openshift-batch
+    - name: build-slurmctld
+      params:
+        - name: IMAGE
+          value: "image-registry.openshift-image-registry.svc:5000/slurm/slurmctld:$(params.image-tag)"
+        - name: BUILDER_IMAGE
+          value: "quay.io/buildah/stable:v1"
+        - name: STORAGE_DRIVER
+          value: overlay
+        - name: DOCKERFILE
+          value: ./Dockerfile
+        - name: CONTEXT
+          value: schedmd/slurm/master/rockylinux9
+        - name: TLSVERIFY
+          value: "true"
+        - name: FORMAT
+          value: oci
+        - name: BUILD_EXTRA_ARGS
+          value: "--target=slurmctld --layers --cache-ttl=10m --cache-to image-registry.openshift-image-registry.svc:5000/slurm/cache --cache-from image-registry.openshift-image-registry.svc:5000/slurm/cache"
+        - name: PUSH_EXTRA_ARGS
+          value: ""
+        - name: SKIP_PUSH
+          value: "false"
+        - name: BUILD_ARGS
+          value:
+            - "PARENT_IMAGE=quay.io/centos/centos:stream9"
+      runAfter:
+        - build-slurmd
+      taskRef:
+        kind: Task
+        name: buildah
+      workspaces:
+        - name: source
+          workspace: slinky
+
+    - name: build-custom-slurmctld
+      params:
+        - name: IMAGE
+          value: "image-registry.openshift-image-registry.svc:5000/slurm/slurmctld-custom:$(params.image-tag)"
+        - name: BUILDER_IMAGE
+          value: "quay.io/buildah/stable:v1"
+        - name: STORAGE_DRIVER
+          value: overlay
+        - name: DOCKERFILE
+          value: ./Dockerfile
+        - name: CONTEXT
+          value: scheduling/slurm-operator/images/slurmd
+        - name: TLSVERIFY
+          value: "true"
+        - name: FORMAT
+          value: oci
+        - name: BUILD_EXTRA_ARGS
+          value: "--from=image-registry.openshift-image-registry.svc:5000/slurm/slurmctld:$(params.image-tag)"
+        - name: PUSH_EXTRA_ARGS
+          value: ""
+        - name: SKIP_PUSH
+          value: "false"
+        - name: BUILD_ARGS
+          value: []
+      runAfter:
+        - build-slurmctld
+        - clone-openshift-batch
+      taskRef:
+        kind: Task
+        name: buildah
+      workspaces:
+        - name: source
+          workspace: openshift-batch
+
+    - name: build-slurmdbd
+      params:
+        - name: IMAGE
+          value: "image-registry.openshift-image-registry.svc:5000/slurm/slurmdbd:$(params.image-tag)"
+        - name: BUILDER_IMAGE
+          value: "quay.io/buildah/stable:v1"
+        - name: STORAGE_DRIVER
+          value: overlay
+        - name: DOCKERFILE
+          value: ./Dockerfile
+        - name: CONTEXT
+          value: schedmd/slurm/master/rockylinux9
+        - name: TLSVERIFY
+          value: "true"
+        - name: FORMAT
+          value: oci
+        - name: BUILD_EXTRA_ARGS
+          value: "--target=slurmdbd --layers --cache-ttl=10m --cache-to image-registry.openshift-image-registry.svc:5000/slurm/cache --cache-from image-registry.openshift-image-registry.svc:5000/slurm/cache"
+        - name: PUSH_EXTRA_ARGS
+          value: ""
+        - name: SKIP_PUSH
+          value: "false"
+        - name: BUILD_ARGS
+          value:
+            - "PARENT_IMAGE=quay.io/centos/centos:stream9"
+      runAfter:
+        - build-slurmd
+      taskRef:
+        kind: Task
+        name: buildah
+      workspaces:
+        - name: source
+          workspace: slinky
+    - name: build-slurmrestd
+      params:
+        - name: IMAGE
+          value: "image-registry.openshift-image-registry.svc:5000/slurm/slurmrestd:$(params.image-tag)"
+        - name: BUILDER_IMAGE
+          value: "quay.io/buildah/stable:v1"
+        - name: STORAGE_DRIVER
+          value: overlay
+        - name: DOCKERFILE
+          value: ./Dockerfile
+        - name: CONTEXT
+          value: schedmd/slurm/master/rockylinux9
+        - name: TLSVERIFY
+          value: "true"
+        - name: FORMAT
+          value: oci
+        - name: BUILD_EXTRA_ARGS
+          value: "--target=slurmrestd --layers --cache-ttl=10m --cache-to image-registry.openshift-image-registry.svc:5000/slurm/cache --cache-from image-registry.openshift-image-registry.svc:5000/slurm/cache"
+        - name: PUSH_EXTRA_ARGS
+          value: ""
+        - name: SKIP_PUSH
+          value: "false"
+        - name: BUILD_ARGS
+          value:
+            - "PARENT_IMAGE=quay.io/centos/centos:stream9"
+      runAfter:
+        - build-slurmd
+      taskRef:
+        kind: Task
+        name: buildah
+      workspaces:
+        - name: source
+          workspace: slinky
+    - name: build-sackd
+      params:
+        - name: IMAGE
+          value: "image-registry.openshift-image-registry.svc:5000/slurm/sackd:$(params.image-tag)"
+        - name: BUILDER_IMAGE
+          value: "quay.io/buildah/stable:v1"
+        - name: STORAGE_DRIVER
+          value: overlay
+        - name: DOCKERFILE
+          value: ./Dockerfile
+        - name: CONTEXT
+          value: schedmd/slurm/master/rockylinux9
+        - name: TLSVERIFY
+          value: "true"
+        - name: FORMAT
+          value: oci
+        - name: BUILD_EXTRA_ARGS
+          value: "--target=sackd --layers --cache-ttl=10m --cache-to image-registry.openshift-image-registry.svc:5000/slurm/cache --cache-from image-registry.openshift-image-registry.svc:5000/slurm/cache"
+        - name: PUSH_EXTRA_ARGS
+          value: ""
+        - name: SKIP_PUSH
+          value: "false"
+        - name: BUILD_ARGS
+          value:
+            - "PARENT_IMAGE=quay.io/centos/centos:stream9"
+      runAfter:
+        - build-slurmd
+      taskRef:
+        kind: Task
+        name: buildah
+      workspaces:
+        - name: source
+          workspace: slinky
+  workspaces:
+    - name: slinky
+    - name: openshift-batch

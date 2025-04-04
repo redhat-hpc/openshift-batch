@@ -1,0 +1,41 @@
+NOTES for OCP
+
+Create the namespace and add anyuid to all service accounts in the namespace
+oc create ns slurm
+oc create -f scc.yaml
+
+# helm show values oci://ghcr.io/slinkyproject/charts/slurm --version=0.1.0 > values-slurm.yaml
+
+helm upgrade -n slurm slurm-operator ../slurm/slurm-operator/helm/slurm-operator/ --values scheduling/slurm-operator/values-operator.yaml
+
+helm upgrade -n slurm slurm ../slurm/slurm-operator/helm/slurm/ --values scheduling/slurm-operator/values-slurm.yaml
+
+curl -LO https://github.com/spack/spack/archive/refs/tags/v0.23.1.tar.gz
+tar -xf v0.23.1.tar.gz
+mv spack-0.23.1/ spack
+echo "source spack/share/spack/setup-env.sh" > $HOME/.bashrc
+
+-- autoscaling
+
+https://github.com/SlinkyProject/slurm-operator/blob/main/docs/autoscaling.md
+
+Install OCP Custom Metrics Autoscaler
+- add KedaController
+
+Enable user workload monitoring
+https://docs.redhat.com/en/documentation/openshift_container_platform/4.17/html/monitoring/configuring-user-workload-monitoring#enabling-monitoring-for-user-defined-projects_preparing-to-configure-the-monitoring-stack-uwm
+
+https://docs.redhat.com/en/documentation/openshift_container_platform/4.17/html/nodes/automatically-scaling-pods-with-the-custom-metrics-autoscaler-operator#nodes-cma-autoscaling-custom-prometheus-config_nodes-cma-autoscaling-custom-trigger
+
+https://docs.redhat.com/en/documentation/openshift_container_platform/4.17/html/monitoring/accessing-metrics#viewing-a-list-of-available-metrics_accessing-metrics-as-a-developer
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-monitoring-config
+  namespace: openshift-monitoring
+data:
+  config.yaml: |
+    enableUserWorkload: true
+```

@@ -1,0 +1,32 @@
+Updating NodeSet issues
+- When changing resources with NodeSet, it doesn't replace
+```
+2025-03-07T17:52:22Z	INFO	Started syncing NodeSet	{"controller": "nodeset-controller", "controllerGroup": "slinky.slurm.net", "controllerKind": "NodeSet", "NodeSet": {"name":"slurm-compute-debug","namespace":"slurm"}, "namespace": "slurm", "name": "slurm-compute-debug", "reconcileID": "a4860843-4efe-4d41-b236-28143ff30fc9", "request": {"name":"slurm-compute-debug","namespace":"slurm"}}
+2025-03-07T17:52:23Z	INFO	KubeAPIWarningLogger	unknown field "spec.template.metadata.creationTimestamp"
+2025-03-07T17:52:23Z	ERROR	encountered an error while reconciling request	{"controller": "nodeset-controller", "controllerGroup": "slinky.slurm.net", "controllerKind": "NodeSet", "NodeSet": {"name":"slurm-compute-debug","namespace":"slurm"}, "namespace": "slurm", "name": "slurm-compute-debug", "reconcileID": "a4860843-4efe-4d41-b236-28143ff30fc9", "request": {"name":"slurm-compute-debug","namespace":"slurm"}, "error": "object is being deleted: pods \"slurm-compute-debug-0\" already exists, the server was not able to generate a unique name for the object", "errorCauses": [{"error": "object is being deleted: pods \"slurm-compute-debug-0\" already exists, the server was not able to generate a unique name for the object"}]}
+github.com/SlinkyProject/slurm-operator/internal/controller/nodeset.(*NodeSetReconciler).Reconcile
+	/workspace/internal/controller/nodeset/nodeset_controller.go:119
+sigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller[...]).Reconcile
+	/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.20.0/pkg/internal/controller/controller.go:118
+sigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller[...]).reconcileHandler
+	/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.20.0/pkg/internal/controller/controller.go:319
+sigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller[...]).processNextWorkItem
+	/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.20.0/pkg/internal/controller/controller.go:279
+sigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller[...]).Start.func2.2
+	/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.20.0/pkg/internal/controller/controller.go:240
+2025-03-07T17:52:23Z	INFO	Finished syncing NodeSet	{"controller": "nodeset-controller", "controllerGroup": "slinky.slurm.net", "controllerKind": "NodeSet", "NodeSet": {"name":"slurm-compute-debug","namespace":"slurm"}, "namespace": "slurm", "name": "slurm-compute-debug", "reconcileID": "a4860843-4efe-4d41-b236-28143ff30fc9", "duration": "1.042326472s", "error": "object is being deleted: pods \"slurm-compute-debug-0\" already exists, the server was not able to generate a unique name for the object", "errorCauses": [{"error": "object is being deleted: pods \"slurm-compute-debug-0\" already exists, the server was not able to generate a unique name for the object"}]}
+2025-03-07T17:52:23Z	ERROR	Reconciler error	{"controller": "nodeset-controller", "controllerGroup": "slinky.slurm.net", "controllerKind": "NodeSet", "NodeSet": {"name":"slurm-compute-debug","namespace":"slurm"}, "namespace": "slurm", "name": "slurm-compute-debug", "reconcileID": "a4860843-4efe-4d41-b236-28143ff30fc9", "error": "object is being deleted: pods \"slurm-compute-debug-0\" already exists, the server was not able to generate a unique name for the object", "errorCauses": [{"error": "object is being deleted: pods \"slurm-compute-debug-0\" already exists, the server was not able to generate a unique name for the object"}]}
+sigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller[...]).reconcileHandler
+	/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.20.0/pkg/internal/controller/controller.go:332
+sigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller[...]).processNextWorkItem
+	/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.20.0/pkg/internal/controller/controller.go:279
+sigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller[...]).Start.func2.2
+	/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.20.0/pkg/internal/controller/controller.go:240
+```
+
+Scaling with KEDA
+- need to specify total node count as initial NodeSet replica count so that it creates node objects in slurm
+```
+srun: error: Unable to allocate resources: Requested node configuration is not available
+```
+- slurm_partition_pending_jobs doesn't show KEDA how many nodes are needed, what about slurm_partition_max_pending_nodes

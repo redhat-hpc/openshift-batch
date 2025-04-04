@@ -1,0 +1,118 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: build-slinky
+  namespace: slurm
+spec:
+  params:
+    - default: latest
+      description: Tag for the resulting images that are built
+      name: image-tag
+      type: string
+  tasks:
+    - name: clone-slinky-operator
+      params:
+        - name: url
+          value: "https://github.com/SlinkyProject/slurm-operator"
+        - name: revision
+          value: ""
+        - name: refspec
+          value: ""
+        - name: submodules
+          value: "true"
+        - name: depth
+          value: "1"
+        - name: sslVerify
+          value: "true"
+        - name: crtFileName
+          value: ca-bundle.crt
+        - name: subdirectory
+          value: ""
+        - name: sparseCheckoutDirectories
+          value: ""
+        - name: deleteExisting
+          value: "true"
+        - name: httpProxy
+          value: ""
+        - name: httpsProxy
+          value: ""
+        - name: noProxy
+          value: ""
+        - name: verbose
+          value: "true"
+        - name: gitInitImage
+          value: "gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/git-init:v0.40.2"
+        - name: userHome
+          value: /home/git
+      taskRef:
+        kind: Task
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: slinky
+    - name: build-operator
+      params:
+        - name: IMAGE
+          value: "image-registry.openshift-image-registry.svc:5000/slurm/slurm-operator:$(params.image-tag)"
+        - name: BUILDER_IMAGE
+          value: "quay.io/buildah/stable:v1"
+        - name: STORAGE_DRIVER
+          value: overlay
+        - name: DOCKERFILE
+          value: build/slurm-operator/Dockerfile
+        - name: CONTEXT
+          value: "."
+        - name: TLSVERIFY
+          value: "true"
+        - name: FORMAT
+          value: oci
+        - name: BUILD_EXTRA_ARGS
+          value: "--from=docker.io/golang:1"
+        - name: PUSH_EXTRA_ARGS
+          value: ""
+        - name: SKIP_PUSH
+          value: "false"
+        - name: BUILD_ARGS
+          value: []
+      runAfter:
+        - clone-slinky-operator
+      taskRef:
+        kind: Task
+        name: buildah
+      workspaces:
+        - name: source
+          workspace: slinky
+    - name: build-operator-webhook
+      params:
+        - name: IMAGE
+          value: "image-registry.openshift-image-registry.svc:5000/slurm/slurm-operator-webhook:$(params.image-tag)"
+        - name: BUILDER_IMAGE
+          value: "quay.io/buildah/stable:v1"
+        - name: STORAGE_DRIVER
+          value: overlay
+        - name: DOCKERFILE
+          value: build/slurm-operator-webhook/Dockerfile
+        - name: CONTEXT
+          value: "."
+        - name: TLSVERIFY
+          value: "true"
+        - name: FORMAT
+          value: oci
+        - name: BUILD_EXTRA_ARGS
+          value: "--from=docker.io/golang:1"
+        - name: PUSH_EXTRA_ARGS
+          value: ""
+        - name: SKIP_PUSH
+          value: "false"
+        - name: BUILD_ARGS
+          value: []
+      runAfter:
+        - clone-slinky-operator
+      taskRef:
+        kind: Task
+        name: buildah
+      workspaces:
+        - name: source
+          workspace: slinky
+  workspaces:
+    - name: slinky

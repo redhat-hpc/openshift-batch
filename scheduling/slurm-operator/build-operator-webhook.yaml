@@ -1,0 +1,21 @@
+apiVersion: shipwright.io/v1beta1
+kind: Build
+metadata:
+  name: build-slurm-operator-webhook
+  namespace: slurm
+spec:
+  source:
+    type: Git
+    git:
+      url: https://github.com/SlinkyProject/slurm-operator
+  strategy:
+    name: buildah
+    kind: ClusterBuildStrategy
+  paramValues:
+    - name: registries-search
+      values:
+        - value: docker.io
+    - name: dockerfile
+      value: build/slurm-operator-webhook/Dockerfile
+  output:
+    image: image-registry.openshift-image-registry.svc:5000/slurm/slurm-operator-webhook:latest
