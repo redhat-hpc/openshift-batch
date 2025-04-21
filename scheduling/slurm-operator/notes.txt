@@ -1,19 +1,21 @@
 NOTES for OCP
 
+install odf
+create filesystem
+
+install pipelines operator
+apply pipelines:
+oc apply -k scheduling/slurm-operator/build-pipeline/
+
 Create the namespace and add anyuid to all service accounts in the namespace
 oc create ns slurm
 oc create -f scc.yaml
 
 # helm show values oci://ghcr.io/slinkyproject/charts/slurm --version=0.1.0 > values-slurm.yaml
 
-helm upgrade -n slurm slurm-operator ../slurm/slurm-operator/helm/slurm-operator/ --values scheduling/slurm-operator/values-operator.yaml
+helm upgrade -i -n slurm slurm-operator ../slurm/slurm-operator/helm/slurm-operator/ --values scheduling/slurm-operator/values-operator.yaml
 
-helm upgrade -n slurm slurm ../slurm/slurm-operator/helm/slurm/ --values scheduling/slurm-operator/values-slurm.yaml
-
-curl -LO https://github.com/spack/spack/archive/refs/tags/v0.23.1.tar.gz
-tar -xf v0.23.1.tar.gz
-mv spack-0.23.1/ spack
-echo "source spack/share/spack/setup-env.sh" > $HOME/.bashrc
+helm upgrade -i -n slurm slurm ../slurm/slurm-operator/helm/slurm/ --values scheduling/slurm-operator/values-slurm.yaml
 
 -- autoscaling
 
@@ -38,4 +40,19 @@ metadata:
 data:
   config.yaml: |
     enableUserWorkload: true
+```
+
+# might want to just use infra nodes and schedule cluster operators there?
+
+Scheduler profiles
+https://docs.redhat.com/en/documentation/openshift_container_platform/4.18/html/nodes/controlling-pod-placement-onto-nodes-scheduling#nodes-scheduler-profiles-configuring_nodes-scheduler-profiles
+
+```
+apiVersion: config.openshift.io/v1
+kind: Scheduler
+metadata:
+  name: cluster
+spec:
+  mastersSchedulable: false
+  profile: HighNodeUtilization
 ```

@@ -61,6 +61,14 @@ spec:
       description: "Dockerfile build arguments, array of key=value"
       name: BUILD_ARGS
       type: array
+    - default: ""
+      description: Cache layers to image registry
+      name: CACHE_IMAGE
+      type: string
+    - default: "1h"
+      description: TTL for image layer cache
+      name: CACHE_TTL
+      type: string
   results:
     - description: Digest of the image just built.
       name: IMAGE_DIGEST
@@ -77,9 +85,15 @@ spec:
         done
         [ "$(workspaces.sslcertdir.bound)" = "true" ] && CERT_DIR_FLAG="--cert-dir=$(workspaces.sslcertdir.path)"
         [ "$(workspaces.dockerconfig.bound)" = "true" ] && DOCKER_CONFIG="$(workspaces.dockerconfig.path)" && export DOCKER_CONFIG
+
+        CACHE_ARGS=""
+        if [ -n "$PARAM_CACHE_IMAGE" ]; then
+          CACHE_ARGS="--layers --cache-ttl=${PARAM_CACHE_TTL} --cache-to=${PARAM_CACHE_IMAGE} --cache-from=${PARAM_CACHE_IMAGE}"
+        fi
+
         # build the image (CERT_DIR_FLAG should be omitted if empty and BUILD_EXTRA_ARGS can contain multiple args)
         # shellcheck disable=SC2046,SC2086
-        buildah ${CERT_DIR_FLAG} "--storage-driver=${PARAM_STORAGE_DRIVER}" bud "${BUILD_ARGS[@]}" ${PARAM_BUILD_EXTRA_ARGS} \
+        buildah ${CERT_DIR_FLAG} "--storage-driver=${PARAM_STORAGE_DRIVER}" bud "${BUILD_ARGS[@]}" ${PARAM_BUILD_EXTRA_ARGS} ${CACHE_ARGS} \
           "--format=${PARAM_FORMAT}" "--tls-verify=${PARAM_TLSVERIFY}" \
           -f "${PARAM_DOCKERFILE}" -t "${PARAM_IMAGE}" "${PARAM_CONTEXT}"
         [ "${PARAM_SKIP_PUSH}" = "true" ] && echo "Push skipped" && exit 0
@@ -110,6 +124,10 @@ spec:
           value: $(params.PUSH_EXTRA_ARGS)
         - name: PARAM_SKIP_PUSH
           value: $(params.SKIP_PUSH)
+        - name: PARAM_CACHE_IMAGE
+          value: $(params.CACHE_IMAGE)
+        - name: PARAM_CACHE_TTL
+          value: $(params.CACHE_TTL)
       computeResources: {}
       securityContext:
         privileged: true

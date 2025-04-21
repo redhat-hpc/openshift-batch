@@ -34,8 +34,7 @@ namespaceOverride: ""
 # -- (list)
 # Set the secrets for image pull.
 # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
-imagePullSecrets:
-  []
+imagePullSecrets: []
   # - name: regcred
 
 #
@@ -60,17 +59,6 @@ jwt:
     # The existing secret to use otherwise one will be generated.
     existingSecret: ""
 
-# TODO
-extraStorage:
-  volumes:
-    - name: home
-      persistentVolumeClaim:
-        claimName: user-homearea
-
-  volumeMounts:
-    - name: home
-      mountPath: /home
-
 #
 # Slurm configurations.
 slurm:
@@ -82,76 +70,86 @@ slurm:
     # The existing secret to use otherwise one will be generated.
     existingSecret: ""
   #
-  # -- (string)
+  # -- (map[string]string | map[string][]string)
   # Extra slurmdbd configuration lines to append to `slurmdbd.conf`.
   # WARNING: Values can override existing ones.
   # Ref: https://slurm.schedmd.com/slurmdbd.conf.html
-  extraSlurmdbdConf: |-
-    CommitDelay=1
-    #
+  extraSlurmdbdConf:
+    CommitDelay: 1
     ### LOGGING ###
-    DebugLevel=info
-    #DebugFlags=
-    LogTimeFormat=iso8601_ms
-    #
+    DebugLevel: info
+    DebugFlags: []
+    LogTimeFormat:
+      - iso8601_ms
+      - format_stderr
     # PLUGINS & PARAMETERS
-    #CommunicationParameters=
-    HashPlugin=hash/k12
-    #
+    CommunicationParameters: []
+    HashPlugin: hash/k12
     ### ARCHIVE ###
-    ArchiveDir=/dev/null
-    #ArchiveEvents=YES
-    #ArchiveJobs=YES
-    #ArchiveResvs=YES
-    #ArchiveSteps=NO
-    #ArchiveSuspend=NO
-    #ArchiveTXN=NO
-    #ArchiveUsage=NO
-    #
+    ArchiveDir: /tmp
+    #ArchiveEvents: YES
+    #ArchiveJobs: YES
+    #ArchiveResvs: YES
+    #ArchiveSteps: NO
+    #ArchiveSuspend: NO
+    #ArchiveTXN: NO
+    #ArchiveUsage: NO
     ### PURGE ###
-    #PurgeEventAfter=12month
-    #PurgeJobAfter=12month
-    #PurgeResvAfter=2month
-    #PurgeStepAfter=2month
-    #PurgeSuspendAfter=1month
-    #PurgeTXNAfter=12month
-    #PurgeUsageAfter=12month
+    #PurgeEventAfter: 12month
+    #PurgeJobAfter: 12month
+    #PurgeResvAfter: 2month
+    #PurgeStepAfter: 2month
+    #PurgeSuspendAfter: 1month
+    #PurgeTXNAfter: 12month
+    #PurgeUsageAfter: 12month
   #
-  # -- (string)
-  # Extra slurm configuration lines to append to `slurm.conf`.
+  # -- (map[string]string | map[string][]string)
+  # Extra slurm configuration lines to append to `slurm.conf`, represetned as a string or a map.
   # WARNING: Values can override existing ones.
   # Ref: https://slurm.schedmd.com/slurm.conf.html
-  extraSlurmConf: |-
-    MaxNodeCount=1024
-    ReturnToService=2
-    EnforcePartLimits=NO
-    #
+  extraSlurmConf:
+    MaxNodeCount: 1024
+    ReturnToService: 2
+    EnforcePartLimits: "NO"
     ### PLUGINS & PARAMETERS ###
-    SchedulerType=sched/backfill
-    SchedulerParameters=batch_sched_delay=20,bf_continue,bf_interval=300,bf_min_age_reserve=10800,bf_resolution=600,bf_yield_interval=1000000,partition_job_depth=500,sched_max_job_start=200,sched_min_interval=2000000
-    SelectType=select/cons_tres
-    SelectTypeParameters=CR_Core_Memory
-    SlurmctldParameters=enable_configless,enable_stepmgr
-    SlurmdParameters=contain_spank
-    CommunicationParameters=block_null_hash
-    LaunchParameters=enable_nss_slurm,use_interactive_step,ulimit_pam_adopt
-    #ReconfigFlags=KeepPartInfo,KeepPartState
-    PrologFlags=Contain
-    HashPlugin=hash/k12
-    #
+    AuthInfo:
+      - use_client_ids
+    SchedulerType: sched/backfill
+    SchedulerParameters:
+      - defer_batch
+    SelectType: select/cons_tres
+    SelectTypeParameters:
+      - CR_Core_Memory
+    SlurmctldParameters:
+      - enable_configless
+      - enable_stepmgr
+    SlurmdParameters:
+      - contain_spank
+    CommunicationParameters:
+      - block_null_hash
+    LaunchParameters:
+      - enable_nss_slurm
+      - use_interactive_step
+      - ulimit_pam_adopt
+    ReconfigFlags:
+      - KeepPartInfo
+      - KeepPartState
+    PrologFlags: Contain
+    HashPlugin: hash/k12
     ### LOGGING ###
-    SlurmctldDebug=info
-    SlurmSchedLogLevel=1
-    SlurmdDebug=info
-    #DebugFlags=
-    LogTimeFormat=iso8601_ms
+    SlurmctldDebug: info
+    SlurmSchedLogLevel: 1
+    SlurmdDebug: info
+    DebugFlags: []
+    LogTimeFormat:
+      - iso8601_ms
+      - format_stderr
   #
   # -- (map[string]string)
   # Optional raw Slurm configuration files, as a map.
   # The map key represents the config file by name; the map value represents config file contents as a string.
   # Ref: https://slurm.schedmd.com/man_index.html#configuration_files
-  configFiles:
-    {}
+  configFiles: {}
     # acct_gather.conf: |
     #   # Ref: https://slurm.schedmd.com/acct_gather.conf.html
     # burst_buffer.conf: |
@@ -178,8 +176,7 @@ slurm:
   # Ref: https://slurm.schedmd.com/slurm.conf.html#OPT_Prolog
   # Ref: https://slurm.schedmd.com/prolog_epilog.html
   # Ref: https://en.wikipedia.org/wiki/Shebang_(Unix)
-  prologScripts:
-    {}
+  prologScripts: {}
     # empty: |
     #   #!/usr/bin/env bash
     #   exit 0
@@ -191,15 +188,35 @@ slurm:
   # Ref: https://slurm.schedmd.com/slurm.conf.html#OPT_Epilog
   # Ref: https://slurm.schedmd.com/prolog_epilog.html
   # Ref: https://en.wikipedia.org/wiki/Shebang_(Unix)
-  epilogScripts:
-    {}
+  epilogScripts: {}
     # empty: |
     #   #!/usr/bin/env bash
     #   exit 0
 
 #
+# Shared configurations.
+sharedConfig:
+  #
+  # -- (list)
+  # List of volumes to be mounted on each Login and NodeSet pods.
+  # Ref: https://kubernetes.io/docs/concepts/storage/volumes/
+  volumes: []
+    # - name: nfs-home
+    #   mountPath: /home
+    #   persistentVolumeClaim:
+    #     claimName: nfs-home
+    # - name: nfs-data
+    #   mountPath: /mnt/data
+    #   persistentVolumeClaim:
+    #     claimName: nfs-data
+
+#
 # Slurm authcred (sackd) configurations.
 authcred:
+  #
+  # -- (string)
+  # Set the image pull policy.
+  imagePullPolicy: IfNotPresent
   #
   # Set the image to use.
   image:
@@ -210,13 +227,12 @@ authcred:
     #
     # -- (string)
     # Set the image tag to use.
-    tag: 0.2.0
+    tag: 0.0.1
   #
   # -- (object)
   # Set container resource requests and limits for Kubernetes Pod scheduling.
   # Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#resource-requests-and-limits-of-pod-and-container
-  resources:
-    {}
+  resources: {}
     # requests:
     #   cpu: 1
     #   memory: 1Gi
@@ -245,11 +261,11 @@ controller:
     #
     # -- (string)
     # Set the image repository to use.
-    repository: image-registry.openshift-image-registry.svc:5000/slurm/slurmctld-custom
+    repository: image-registry.openshift-image-registry.svc:5000/slurm/slurmctld
     #
     # -- (string)
     # Set the image tag to use.
-    tag: 0.4.4
+    tag: 0.0.1
   #
   # -- (string)
   # Set the priority class to use.
@@ -261,11 +277,15 @@ controller:
   # Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity
   affinity: {}
   #
+  # -- (list)
+  # Configure pod tolerations.
+  # Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/
+  tolerations: []
+  #
   # -- (object)
   # Set container resource requests and limits for Kubernetes Pod scheduling.
   # Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#resource-requests-and-limits-of-pod-and-container
-  resources:
-    {}
+  resources: {}
     # requests:
     #   cpu: 1
     #   memory: 1Gi
@@ -276,6 +296,10 @@ controller:
   # Define a persistent volume for the slurm controller to store its save-state.
   # Used to recover from system failures or from pod upgrades.
   persistence:
+    #
+    # -- (bool)
+    # Enables save-state persistence.
+    enabled: false
     #
     # -- (string)
     # Name of an existing `PersistentVolumeClaim` to use instead of creating one from definition.
@@ -305,10 +329,161 @@ controller:
     #
     # -- (object)
     # Selector to match an existing `PersistentVolume`.
-    selector:
-      {}
+    selector: {}
       # matchLabels:
       #   app: foo
+
+#
+# Login node configurations.
+login:
+  #
+  # -- (bool)
+  # Enables login nodes.
+  enabled: true
+  #
+  # -- (integer)
+  # Set the number of replicas to deploy.
+  replicas: 1
+  #
+  # -- (string)
+  # Set the image pull policy.
+  imagePullPolicy: IfNotPresent
+  #
+  # Set the image to use.
+  image:
+    #
+    # -- (string)
+    # Set the image repository to use.
+    repository: image-registry.openshift-image-registry.svc:5000/slurm/login
+    #
+    # -- (string)
+    # Set the image tag to use.
+    tag: 0.0.1
+  #
+  # -- (object)
+  # The restapi service configuration.
+  # Ref: https://kubernetes.io/docs/concepts/services-networking/service/
+  service:
+    type: LoadBalancer
+    # externalIPs: []
+    # externalName: my.login.example.com
+  #
+  # -- (integer)
+  # The external service port number.
+  servicePort: 2222
+  #
+  # -- (integer)
+  # The external service node port number.
+  # Ignored unless `service.type == NodePort`.
+  serviceNodePort: 32222
+  #
+  # -- (list)
+  # The `/root/.ssh/authorized_keys` file to write, represented as a list.
+  rootSshAuthorizedKeys: []
+    # - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx user@example.com
+  #
+  # -- (map)
+  # The `/etc/ssh/sshd_config` file to use, represented as a map.
+  # Ref: https://man.openbsd.org/sshd_config
+  sshdConfig:
+    Include: "/etc/ssh/sshd_config.d/*.conf"
+    # Subsystem: sftp internal-sftp
+  #
+  # The `/etc/sssd/sssd.conf` represented by as a map.
+  sssdConf:
+    #
+    # -- (map)
+    # The `/etc/sssd/sssd.conf` [sssd] section, represented as a map.
+    # Ref: https://man.archlinux.org/man/sssd.conf.5#The_%5Bsssd%5D_section
+    sssd:
+      # debug_level: 9
+      config_file_version: 2
+      services: nss, pam
+      domains: DEFAULT
+    #
+    # -- (map[map])
+    # The `/etc/sssd/sssd.conf` [domain/$DOMAIN] sections, represented as a map of map.
+    # Ref: https://man.archlinux.org/man/sssd.conf.5#DOMAIN_SECTIONS
+    domains:
+      DEFAULT:
+        # debug_level: 9
+        auth_provider: ldap
+        id_provider: ldap
+        ldap_uri: ldap://ldap.example.com
+        ldap_search_base: dc=example,dc=com
+        ldap_user_search_base: ou=Users,dc=example,dc=com
+        ldap_group_search_base: ou=Groups,dc=example,dc=com
+    #
+    # -- (map)
+    # The `/etc/sssd/sssd.conf` [nss] section, represented as a map.
+    # Ref: https://man.archlinux.org/man/sssd.conf.5#NSS_configuration_options
+    nss:
+      # debug_level: 9
+      filter_groups: root,slurm
+      filter_users: root,slurm
+    #
+    # -- (map)
+    # The `/etc/sssd/sssd.conf` [pam] section, represented as a map.
+    # Ref: https://man.archlinux.org/man/sssd.conf.5#PAM_configuration_options
+    pam: {}
+      # debug_level: 9
+  #
+  # --(map)
+  # The `/etc/nsswitch.conf` file to use, represented as a map.
+  # Ref: https://man7.org/linux/man-pages/man5/nsswitch.conf.5.html
+  nsswitchConf:
+    passwd: db files sss
+    group: db files sss
+    shadow: db files sss
+    gshadow: files
+    sudoers: files sss
+    hosts: files dns myhostname
+    networks: files
+    protocols: db files
+    services: db files sss
+    ethers: db files
+    rpc: db files
+    netgroup: db files sss
+    automount: files sss
+  #
+  # -- (list)
+  # List of volumes to be mounted on each login pod.
+  # Ref: https://kubernetes.io/docs/concepts/storage/volumes/
+  volumes: []
+    # - name: nfs-home
+    #   mountPath: /home
+    #   persistentVolumeClaim:
+    #     claimName: nfs-home
+    # - name: nfs-data
+    #   mountPath: /mnt/data
+    #   persistentVolumeClaim:
+    #     claimName: nfs-data
+  #
+  # -- (string)
+  # Set the priority class to use.
+  # Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/#priorityclass
+  priorityClassName: ""
+  #
+  # -- (object)
+  # Set affinity for Kubernetes Pod scheduling.
+  # Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity
+  affinity: {}
+  #
+  # -- (list)
+  # Configure pod tolerations.
+  # Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/
+  tolerations: []
+  #
+  # -- (object)
+  # Set container resource requests and limits for Kubernetes Pod scheduling.
+  # Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#resource-requests-and-limits-of-pod-and-container
+  resources: {}
+    # requests:
+    #   cpu: 1
+    #   memory: 1Gi
+    # limits:
+    #   cpu: 2
+    #   memory: 4Gi
 
 #
 # Slurm compute (slurmd) configurations.
@@ -329,14 +504,14 @@ compute:
     # -- (string)
     # Set the image tag to use.
     # @default -- The Release appVersion.
-    tag: 0.4.4
+    tag: 0.0.1
   #
   # -- (list)
   # Slurm NodeSets by object list.
   nodesets:
-    #
-    # -- (string)
-    # Name of NodeSet. Must be unique.
+      #
+      # -- (string)
+      # Name of NodeSet. Must be unique.
     - name: debug
       #
       # -- (bool)
@@ -345,12 +520,7 @@ compute:
       #
       # -- (integer)
       # Set the number of replicas to deploy.
-      replicas: 3
-      #
-      # -- (int)
-      # The minimum number of seconds for which a newly created NodeSet Pod should be ready
-      # without any of its container crashing, for it to be considered available.
-      minReadySeconds: 0
+      replicas: 2
       #
       # -- (string)
       # Set the image pull policy.
@@ -377,8 +547,8 @@ compute:
       # Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#resource-requests-and-limits-of-pod-and-container
       resources:
         limits:
-          cpu: 1
-          memory: 1Gi
+          cpu: 6
+          memory: 8Gi
       #
       # -- (map)
       # Selector which must match a node's labels for the pod to be scheduled on that node.
@@ -387,8 +557,7 @@ compute:
       #
       # -- (object)
       # Set affinity for Kubernetes Pod scheduling.
-      affinity:
-        {}
+      affinity: {}
         # nodeAffinity:
         #   requiredDuringSchedulingIgnoredDuringExecution:
         #     nodeSelectorTerms:
@@ -408,6 +577,11 @@ compute:
         #               - slurmctld
         #               - slurmdbd
         #               - slurmrestd
+      #
+      # -- (list)
+      # Configure pod tolerations.
+      # Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/
+      tolerations: []
       #
       # -- (object)
       # Set the update strategy configuration.
@@ -449,22 +623,36 @@ compute:
         # deleted.
         whenScaled: Retain
       #
-      # --(list)
-      # List of claims that pods are allowed to reference.
-      # The NodeSet controller is responsible for mapping network identities to
-      # claims in a way that maintains the identity of a pod.
-      volumeClaimTemplates:
-        []
+      # -- (list)
+      # List of PVCs to be created from template and mounted on each NodeSet pod.
+      # PVCs are given a unique identity relative to each NodeSet pod.
+      # Ref: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#volume-claim-templates
+      volumeClaimTemplates: []
         # - metadata:
-        #     name: data
+        #     name: scratch
         #   spec:
+        #     mountPath: /mnt/scratch
         #     storageClassName: standard
-        #     mountPath: /mnt/data
         #     accessModes:
         #       - ReadWriteOnce
         #     resources:
         #       requests:
         #         storage: 1Gi
+      #
+      # -- (list)
+      # List of volumes to be mounted on each NodeSet pod.
+      # Ref: https://kubernetes.io/docs/concepts/storage/volumes/
+      volumes: []
+        # - name: nfs-bin
+        #   mountPath: /usr/local/bin
+        #   nfs:
+        #     server: nfs-server.example.com
+        #     path: /opt/bin
+        #     readOnly: true
+        # - name: nfs-data
+        #   mountPath: /mnt/data
+        #   persistentVolumeClaim:
+        #     claimName: nfs-data
       #
       # -- (object)
       # Partition describes the partition created specifically for this NodeSet to be added.
@@ -474,12 +662,12 @@ compute:
         # Enables this NodeSet's partition line to be added in Slurm.
         enabled: true
         #
-        # -- (string)
+        # -- (map[string]string | map[string][]string)
         # Extra Slurm partition configuration appended onto the partition line.
         # Ref: https://slurm.schedmd.com/slurm.conf.html#lbAI
-        config: >-
-          State=UP
-          MaxTime=UNLIMITED
+        config:
+          State: UP
+          MaxTime: UNLIMITED
       #
       # -- (string)
       # Set Slurm node GRES.
@@ -499,9 +687,9 @@ compute:
   # -- (list)
   # Slurm Partitions by object list.
   partitions:
-    #
-    # -- (string)
-    # Name of Partition. Must be unique.
+      #
+      # -- (string)
+      # Name of Partition. Must be unique.
     - name: all
       #
       # -- (bool)
@@ -514,13 +702,13 @@ compute:
       nodesets:
         - ALL
       #
-      # -- (string)
+      # -- (map[string]string | map[string][]string)
       # Extra Slurm partition configuration appended onto the partition line.
       # Ref: https://slurm.schedmd.com/slurm.conf.html#lbAI
-      config: >-
-        State=UP
-        Default=YES
-        MaxTime=UNLIMITED
+      config:
+        State: UP
+        Default: "YES"
+        MaxTime: UNLIMITED
 
 #
 # Slurm accounting (slurmdbd) configurations.
@@ -547,18 +735,22 @@ accounting:
     #
     # -- (string)
     # Set the image tag to use.
-    tag: 0.2.0
+    tag: 0.0.1
   #
   # -- (object)
   # Set affinity for Kubernetes Pod scheduling.
   # Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity
   affinity: {}
   #
+  # -- (list)
+  # Configure pod tolerations.
+  # Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/
+  tolerations: []
+  #
   # -- (object)
   # Set container resource requests and limits for Kubernetes Pod scheduling.
   # Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#resource-requests-and-limits-of-pod-and-container
-  resources:
-    {}
+  resources: {}
     # requests:
     #   cpu: 1
     #   memory: 1Gi
@@ -589,19 +781,70 @@ mariadb:
   auth:
     username: slurm
     database: slurm_acct_db
-    existingSecret: "slurm-mariadb-passwords"
-  initdbScripts:
-    # NOTE: https://slurm.schedmd.com/accounting.html#slurm-accounting-configuration-before-build
-    slurm-accounting.sql: |-
-      SET GLOBAL innodb_buffer_pool_size=(4 * 1024 * 1024 * 1024);
-      SET GLOBAL innodb_log_file_size=(64 * 1024 * 1024);
-      SET GLOBAL innodb_lock_wait_timeout=900;
-      SET GLOBAL max_allowed_packet=(16 * 1024 * 1024);
+  tls:
+    enabled: false
+  tde:
+    enabled: false
   primary:
+    # NOTE: https://slurm.schedmd.com/accounting.html#slurm-accounting-configuration-before-build
+    configuration: |-
+      [mysqld]
+      skip-name-resolve
+      explicit_defaults_for_timestamp
+      basedir=/opt/bitnami/mariadb
+      datadir=/bitnami/mariadb/data
+      plugin_dir=/opt/bitnami/mariadb/plugin
+      port={{ .Values.primary.containerPorts.mysql }}
+      socket=/opt/bitnami/mariadb/tmp/mysql.sock
+      tmpdir=/opt/bitnami/mariadb/tmp
+      innodb_buffer_pool_size=4096M
+      innodb_lock_wait_timeout=900
+      innodb_log_file_size=1024M
+      max_allowed_packet=16M
+      bind-address=*
+      pid-file=/opt/bitnami/mariadb/tmp/mysqld.pid
+      log-error=/opt/bitnami/mariadb/logs/mysqld.log
+      character-set-server=UTF8
+      collation-server=utf8_general_ci
+      slow_query_log=0
+      long_query_time=10.0
+      binlog_expire_logs_seconds=2592000
+      {{- if .Values.tls.enabled }}
+      ssl_cert=/opt/bitnami/mariadb/certs/{{ .Values.tls.certFilename }}
+      ssl_key=/opt/bitnami/mariadb/certs/{{ .Values.tls.certKeyFilename }}
+      {{- if (include "mariadb.tlsCACert" .) }}
+      ssl_ca={{ include "mariadb.tlsCACert" . }}
+      {{- end }}
+      {{- end }}
+      {{- if .Values.tde.enabled }}
+      plugin_load_add=file_key_management
+      file_key_management_filename=/opt/bitnami/mariadb/tde/{{ .Values.tde.encryptedKeyFilename }}
+      file_key_management_filekey=FILE:/opt/bitnami/mariadb/tde/{{ .Values.tde.randomKeyFilename }}
+      file_key_management_encryption_algorithm={{ .Values.tde.fileKeyManagementEncryptionAlgorithm }}
+      innodb_encrypt_tables={{ .Values.tde.innodbEncryptTables }}
+      innodb_encrypt_log={{ .Values.tde.innodbEncryptLog }}
+      innodb_encrypt_temporary_tables={{ .Values.tde.innodbEncryptTemporaryTables }}
+      innodb_encryption_threads={{ .Values.tde.innodbEncryptionThreads }}
+      encrypt_tmp_disk_tables={{ .Values.tde.encryptTmpDiskTables }}
+      encrypt_tmp_files={{ .Values.tde.encryptTmpTiles }}
+      encrypt_binlog={{ .Values.tde.encryptBINLOG }}
+      aria_encrypt_tables={{ .Values.tde.ariaEncryptTables }}
+      {{- end }}
+
+      [client]
+      port=3306
+      socket=/opt/bitnami/mariadb/tmp/mysql.sock
+      default-character-set=UTF8
+      plugin_dir=/opt/bitnami/mariadb/plugin
+
+      [manager]
+      port=3306
+      socket=/opt/bitnami/mariadb/tmp/mysql.sock
+      pid-file=/opt/bitnami/mariadb/tmp/mysqld.pid
     persistence:
-      enabled: false
+      enabled: true
       existingClaim: ""
-      storageClass: "gp3-csi"
+      storageClass: standard
       labels: {}
       annotations: {}
       accessModes:
@@ -609,6 +852,7 @@ mariadb:
       size: 8Gi
       selector: {}
     priorityClassName: ""
+    tolerations: []
   metrics:
     enabled: false
     serviceMonitor:
@@ -641,7 +885,24 @@ restapi:
     #
     # -- (string)
     # Set the image tag to use.
-    tag: 0.2.0
+    tag: 0.0.1
+  #
+  # -- (object)
+  # The restapi service configuration.
+  # Ref: https://kubernetes.io/docs/concepts/services-networking/service/
+  service: {}
+    # type: LoadBalancer
+    # externalIPs: []
+    # externalName: my.slurmrestd.example.com
+  #
+  # -- (integer)
+  # The external service port number.
+  servicePort: 6820
+  #
+  # -- (integer)
+  # The external service node port number.
+  # Ignored unless `service.type == NodePort`.
+  serviceNodePort: 36820
   #
   # -- (string)
   # Set the priority class to use.
@@ -653,11 +914,15 @@ restapi:
   # Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity
   affinity: {}
   #
+  # -- (list)
+  # Configure pod tolerations.
+  # Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/
+  tolerations: []
+  #
   # -- (object)
   # Set container resource requests and limits for Kubernetes Pod scheduling.
   # Ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#resource-requests-and-limits-of-pod-and-container
-  resources:
-    {}
+  resources: {}
     # requests:
     #   cpu: 1
     #   memory: 1Gi
@@ -669,6 +934,7 @@ restapi:
 # `slurm-exporter` subchart configurations.
 # Ref: https://github.com/SlinkyProject/slurm-exporter/-/blob/main/helm/slurm-exporter/values.yaml
 slurm-exporter:
+  enabled: true
   exporter:
     enabled: true
     secretName: "slurm-token-exporter"

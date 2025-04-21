@@ -56,7 +56,7 @@ operator:
     # -- (string)
     # Sets the image tag to use.
     # @default -- The Release version.
-    tag: 0.1.0
+    tag: 0.0.1
   #
   # Service account configurations.
   serviceAccount:
@@ -124,7 +124,7 @@ webhook:
     # -- (string)
     # Sets the image tag to use.
     # @default -- The Release version.
-    tag: 0.1.0
+    tag: 0.0.1
   #
   # Service account configurations.
   serviceAccount:

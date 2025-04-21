@@ -84,7 +84,7 @@ spec:
         namespace: slurm
         metricName: slurm_partition_max_pending_nodes
         query: slurm_partition_max_pending_nodes{partition="all"}
-        threshold: "5"
+        threshold: "1"
         authModes: bearer
       authenticationRef:
         name: keda-trigger-auth-prometheus
