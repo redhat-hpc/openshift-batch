@@ -2,6 +2,7 @@ apiVersion: security.openshift.io/v1
 kind: SecurityContextConstraints
 metadata:
   name: slurm
+
 priority: 10
 users: []
 groups:
@@ -14,12 +15,13 @@ allowHostPID: false
 allowHostPorts: false
 allowPrivilegeEscalation: true
 allowPrivilegedContainer: true
-allowedCapabilities: 
+allowedCapabilities:
 - NET_RAW
 - BPF
 - NET_ADMIN
 - SYS_ADMIN
 - SYS_NICE
+- SYS_CHROOT # needed for login nodes (sshd)
 defaultAddCapabilities: null
 fsGroup:
   type: RunAsAny

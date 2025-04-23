@@ -1,0 +1,124 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: glauth-config
+data:
+  config.cfg: |
+    debug = true
+
+    [api]
+      enabled = true
+      internals = true # debug application performance
+      tls = false
+      listen = "0.0.0.0:5555"
+
+    [ldaps]
+      enabled = true
+      listen = "0.0.0.0:3894"
+      cert = "/etc/tls/serving/tls.crt"
+      key = "/etc/tls/serving/tls.key"
+
+    [ldap]
+      enabled = true
+      listen = "0.0.0.0:3893"
+      tls = true
+      tlsCertPath = "/etc/tls/serving/tls.crt"
+      tlsKeyPath = "/etc/tls/serving/tls.key"
+
+    [backend]
+      datastore = "config"
+      basedn = "dc=example,dc=com"
+
+      # If you are using a client that requires reading the root DSE first
+      # such as SSSD
+      anonymousdse = true
+
+    [behaviors]
+      # Ignore all capabilities restrictions, for instance allowing every user to perform a search
+      IgnoreCapabilities = true
+
+
+    [[users]]
+      name = "danger"
+      uidnumber = 5000
+      primarygroup = 5500
+      passsha256 = "6478579e37aff45f013e14eeb30b3cc56c72ccdc310123bcdf53e0333e3f416a" # dogood
+
+    [[users]]
+      name = "serviceuser"
+      uidnumber = 5003
+      primarygroup = 5500
+      passsha256 = "652c7dc687d98c9889304ed2e408c74b611e86a40caa51c4b43f1dd5913c5cd0" # mysecret
+
+    [[groups]]
+      name = "users"
+      gidnumber = 5500
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: glauth
+  annotations:
+    service.beta.openshift.io/serving-cert-secret-name: glauth-tls
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: glauth
+  template:
+    metadata:
+      labels:
+        app: glauth
+    spec:
+      containers:
+      - name: glauth
+        image: glauth/glauth:latest
+        ports:
+        - containerPort: 3893  # LDAP
+          name: ldap
+        - containerPort: 3894  # LDAPS
+          name: ldaps
+        - containerPort: 5555  # Additional port
+          name: additional
+        volumeMounts:
+        - name: config
+          mountPath: /app/config
+          readOnly: true
+        - name: tls
+          mountPath: /etc/tls/serving
+          readOnly: true
+      volumes:
+      - name: config
+        configMap:
+          name: glauth-config
+          items:
+          - key: config.cfg
+            path: config.cfg
+      - name: tls
+        secret:
+          secretName: glauth-tls
+          optional: false
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: glauth
+  annotations:
+    service.beta.openshift.io/serving-cert-secret-name: glauth-tls
+spec:
+  selector:
+    app: glauth
+  ports:
+  - name: ldap
+    port: 389
+    targetPort: 3893
+  - name: ldaps
+    port: 636
+    targetPort: 3894
+  - name: additional
+    port: 5555
+    targetPort: 5555
+  type: ClusterIP

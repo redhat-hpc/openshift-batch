@@ -227,7 +227,7 @@ authcred:
     #
     # -- (string)
     # Set the image tag to use.
-    tag: 0.0.1
+    tag: 0.0.2
   #
   # -- (object)
   # Set container resource requests and limits for Kubernetes Pod scheduling.
@@ -265,7 +265,7 @@ controller:
     #
     # -- (string)
     # Set the image tag to use.
-    tag: 0.0.1
+    tag: 0.0.2
   #
   # -- (string)
   # Set the priority class to use.
@@ -358,7 +358,7 @@ login:
     #
     # -- (string)
     # Set the image tag to use.
-    tag: 0.0.1
+    tag: 0.0.2
   #
   # -- (object)
   # The restapi service configuration.
@@ -407,20 +407,25 @@ login:
     domains:
       DEFAULT:
         # debug_level: 9
-        auth_provider: ldap
         id_provider: ldap
-        ldap_uri: ldap://ldap.example.com
+        auth_provider: ldap
+
+        ldap_tls_reqcert: never
+        ldap_uri: ldaps://glauth.slurm.svc.cluster.local
         ldap_search_base: dc=example,dc=com
         ldap_user_search_base: ou=Users,dc=example,dc=com
         ldap_group_search_base: ou=Groups,dc=example,dc=com
+
+        ldap_default_bind_dn: cn=serviceuser,ou=Users,dc=example,dc=com
+        ldap_default_authtok: mysecret
     #
     # -- (map)
     # The `/etc/sssd/sssd.conf` [nss] section, represented as a map.
     # Ref: https://man.archlinux.org/man/sssd.conf.5#NSS_configuration_options
-    nss:
-      # debug_level: 9
-      filter_groups: root,slurm
-      filter_users: root,slurm
+    # nss:
+    #   debug_level: 9
+      # filter_groups: root,slurm
+      # filter_users: root,slurm
     #
     # -- (map)
     # The `/etc/sssd/sssd.conf` [pam] section, represented as a map.
@@ -504,7 +509,7 @@ compute:
     # -- (string)
     # Set the image tag to use.
     # @default -- The Release appVersion.
-    tag: 0.0.1
+    tag: 0.0.2
   #
   # -- (list)
   # Slurm NodeSets by object list.
@@ -735,7 +740,7 @@ accounting:
     #
     # -- (string)
     # Set the image tag to use.
-    tag: 0.0.1
+    tag: 0.0.2
   #
   # -- (object)
   # Set affinity for Kubernetes Pod scheduling.
@@ -844,7 +849,7 @@ mariadb:
     persistence:
       enabled: true
       existingClaim: ""
-      storageClass: standard
+      storageClass: gp3-csi
       labels: {}
       annotations: {}
       accessModes:
@@ -885,7 +890,7 @@ restapi:
     #
     # -- (string)
     # Set the image tag to use.
-    tag: 0.0.1
+    tag: 0.0.2
   #
   # -- (object)
   # The restapi service configuration.
