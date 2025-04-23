@@ -38,23 +38,29 @@ data:
       # Ignore all capabilities restrictions, for instance allowing every user to perform a search
       IgnoreCapabilities = true
 
-
     [[users]]
       name = "danger"
       uidnumber = 5000
-      primarygroup = 5500
+      primarygroup = 5504
       passsha256 = "6478579e37aff45f013e14eeb30b3cc56c72ccdc310123bcdf53e0333e3f416a" # dogood
 
     [[users]]
       name = "serviceuser"
       uidnumber = 5003
-      primarygroup = 5500
+      primarygroup = 5502
       passsha256 = "652c7dc687d98c9889304ed2e408c74b611e86a40caa51c4b43f1dd5913c5cd0" # mysecret
 
     [[groups]]
-      name = "users"
-      gidnumber = 5500
+      name = "superheros"
+      gidnumber = 5501
 
+    [[groups]]
+      name = "svcaccts"
+      gidnumber = 5502
+
+    [[groups]]
+      name = "danger"
+      gidnumber = 5504
 ---
 apiVersion: apps/v1
 kind: Deployment

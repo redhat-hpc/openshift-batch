@@ -413,10 +413,10 @@ login:
         ldap_tls_reqcert: never
         ldap_uri: ldaps://glauth.slurm.svc.cluster.local
         ldap_search_base: dc=example,dc=com
-        ldap_user_search_base: ou=Users,dc=example,dc=com
-        ldap_group_search_base: ou=Groups,dc=example,dc=com
+        ldap_user_search_base: dc=example,dc=com
+        ldap_group_search_base: dc=example,dc=com
 
-        ldap_default_bind_dn: cn=serviceuser,ou=Users,dc=example,dc=com
+        ldap_default_bind_dn: cn=serviceuser,dc=example,dc=com
         ldap_default_authtok: mysecret
     #
     # -- (map)
@@ -454,11 +454,11 @@ login:
   # -- (list)
   # List of volumes to be mounted on each login pod.
   # Ref: https://kubernetes.io/docs/concepts/storage/volumes/
-  volumes: []
-    # - name: nfs-home
-    #   mountPath: /home
-    #   persistentVolumeClaim:
-    #     claimName: nfs-home
+  volumes:
+    - name: site-homeareas
+      mountPath: /home
+      persistentVolumeClaim:
+        claimName: user-homearea
     # - name: nfs-data
     #   mountPath: /mnt/data
     #   persistentVolumeClaim:
@@ -647,7 +647,11 @@ compute:
       # -- (list)
       # List of volumes to be mounted on each NodeSet pod.
       # Ref: https://kubernetes.io/docs/concepts/storage/volumes/
-      volumes: []
+      volumes:
+        - name: home
+          mountPath: /home
+          persistentVolumeClaim:
+            claimName: user-homearea
         # - name: nfs-bin
         #   mountPath: /usr/local/bin
         #   nfs:
