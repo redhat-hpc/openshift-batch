@@ -39,28 +39,72 @@ data:
       IgnoreCapabilities = true
 
     [[users]]
+      name = "serviceuser"
+      uidnumber = 4999
+      primarygroup = 4000
+      passsha256 = "652c7dc687d98c9889304ed2e408c74b611e86a40caa51c4b43f1dd5913c5cd0" # mysecret
+
+    [[users]]
       name = "danger"
       uidnumber = 5000
-      primarygroup = 5504
+      primarygroup = 4000
       passsha256 = "6478579e37aff45f013e14eeb30b3cc56c72ccdc310123bcdf53e0333e3f416a" # dogood
 
     [[users]]
-      name = "serviceuser"
+      name = "user1"
+      uidnumber = 5001
+      primarygroup = 4001
+      passsha256 = "0a041b9462caa4a31bac3567e0b6e6fd9100787db2ab433d96f6d178cabfce90"
+
+    [[users]]
+      name = "user2"
+      uidnumber = 5002
+      primarygroup = 4001
+      otherGroups = [4002]
+      passsha256 = "6025d18fe48abd45168528f18a82e265dd98d421a7084aa09f61b341703901a3"
+
+    [[users]]
+      name = "user3"
       uidnumber = 5003
-      primarygroup = 5502
-      passsha256 = "652c7dc687d98c9889304ed2e408c74b611e86a40caa51c4b43f1dd5913c5cd0" # mysecret
+      primarygroup = 4002
+      passsha256 = "5860faf02b6bc6222ba5aca523560f0e364ccd8b67bee486fe8bf7c01d492ccb"
+
+    [[users]]
+      name = "user4"
+      uidnumber = 5004
+      primarygroup = 4002
+      passsha256 = "5269ef980de47819ba3d14340f4665262c41e933dc92c1a27dd5d01b047ac80e"
+
+    [[users]]
+      name = "user5"
+      uidnumber = 5005
+      primarygroup = 4003
+      passsha256 = "5a39bead318f306939acb1d016647be2e38c6501c58367fdb3e9f52542aa2442"
+
+    [[users]]
+      name = "user6"
+      uidnumber = 5006
+      primarygroup = 4003
+      otherGroups = [4001,4002]
+      passsha256 = "ecb48a1cc94f951252ec462fe9ecc55c3ef123fadfe935661396c26a45a5809d"
+
 
     [[groups]]
-      name = "superheros"
-      gidnumber = 5501
+      name = "users"
+      gidnumber = 4000
 
     [[groups]]
-      name = "svcaccts"
-      gidnumber = 5502
+      name = "project1"
+      gidnumber = 4001
 
     [[groups]]
-      name = "danger"
-      gidnumber = 5504
+      name = "project2"
+      gidnumber = 4002
+
+    [[groups]]
+      name = "project3"
+      gidnumber = 4003
+
 ---
 apiVersion: apps/v1
 kind: Deployment

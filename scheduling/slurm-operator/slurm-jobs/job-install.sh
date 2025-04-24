@@ -11,7 +11,7 @@ if [ ! -d spack ]; then
     rm -rf v0.23.1.tar.gz
     mv spack-0.23.1/ spack
 fi
-echo "source ~/spack/share/spack/setup-env.sh" > ~/.bashrc
+echo "source ~/spack/share/spack/setup-env.sh" > ~/.bash_profile
 
 source ~/.bashrc
 
