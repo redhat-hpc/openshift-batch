@@ -4,9 +4,7 @@
 
 Create operator deployment
 
-```
-$ oc apply --server-side -f kueue/manifests.yaml
-```
+TODO
 
 Create queues
 
