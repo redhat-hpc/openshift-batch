@@ -19,20 +19,6 @@ spec:
             - name: memory
               nominalQuota: 36Gi
 ---
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: project-a
-  labels:
-    kueue.openshift.io/managed: "true"
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: project-b
-  labels:
-    kueue.openshift.io/managed: "true"
----
 apiVersion: kueue.x-k8s.io/v1beta1
 kind: LocalQueue
 metadata:

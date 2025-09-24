@@ -1,10 +1,4 @@
-# kueue
-
-## Install
-
-Create operator deployment
-
-TODO
+# Kueue
 
 Create queues
 
