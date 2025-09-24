@@ -3,6 +3,8 @@ kind: Job
 metadata:
   generateName: job-sleep-
   labels:
+    job/name: sleep
+    job/all: "true"
     kueue.x-k8s.io/queue-name: user-queue
 spec:
   parallelism: 3

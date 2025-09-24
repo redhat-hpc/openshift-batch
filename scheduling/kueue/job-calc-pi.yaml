@@ -3,6 +3,8 @@ kind: Job
 metadata:
   generateName: job-calc-pi-
   labels:
+    job/name: calc-pi
+    job/all: "true"
     kueue.x-k8s.io/queue-name: user-queue
 spec:
   parallelism: 1
