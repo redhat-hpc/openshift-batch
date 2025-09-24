@@ -19,10 +19,28 @@ spec:
             - name: memory
               nominalQuota: 36Gi
 ---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: project-a
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: project-b
+---
 apiVersion: kueue.x-k8s.io/v1beta1
 kind: LocalQueue
 metadata:
   name: user-queue
-  namespace: default
+  namespace: project-a
+spec:
+  clusterQueue: cluster-queue
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: LocalQueue
+metadata:
+  name: user-queue
+  namespace: project-b
 spec:
   clusterQueue: cluster-queue

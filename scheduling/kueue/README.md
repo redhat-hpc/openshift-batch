@@ -9,13 +9,13 @@ TODO
 Create queues
 
 ```
-$ oc apply --server-side -f kueue/single-clusterqueue-setup.yaml
+$ oc apply --server-side -f single-clusterqueue-setup.yaml
 ```
 
 ## Test jobs
 
 ```
-$ for i in $(seq 0 5); do oc create -f kueue/sample-job.yaml ; done
+$ for i in $(seq 0 5); do oc create -f job-sleep.yaml ; done
 ```
 
 ```
