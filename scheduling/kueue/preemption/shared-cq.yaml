@@ -12,13 +12,13 @@ spec:
   namespaceSelector: {} # match all.
   cohort: "team-ab"
   resourceGroups:
-  - coveredResources: 
-    - cpu
-    - memory
-    flavors:
-    - name: "default-flavor"
-      resources:
-      - name: "cpu"
-        nominalQuota: 10
-      - name: "memory"
-        nominalQuota: 64Gi
+    - coveredResources:
+        - cpu
+        - memory
+      flavors:
+        - name: "default-flavor"
+          resources:
+            - name: "cpu"
+              nominalQuota: 10
+            - name: "memory"
+              nominalQuota: 64Gi

@@ -9,6 +9,9 @@ spec:
       policy: LowerPriority
       maxPriorityThreshold: 100
     withinClusterQueue: Never
+  flavorFungibility:
+    whenCanBorrow: Borrow
+    whenCanPreempt: Preempt
   namespaceSelector:
     matchLabels:
       kubernetes.io/metadata.name: project-a

@@ -8,8 +8,8 @@ metadata:
     kueue.x-k8s.io/queue-name: local-queue
     kueue.x-k8s.io/priority-class: prod-priority
 spec:
-  parallelism: 3
-  completions: 3
+  parallelism: 8
+  completions: 8
   suspend: true
   template:
     spec:

@@ -1,6 +1,28 @@
-# Introduction
+# Classical Preemption
 
-We will demostrate how to use quota allocation with Kueue with preemption.
+Demo pulled and adapted from [this repo](https://github.com/opendatahub-io-contrib/ai-on-openshift/tree/main/docs/odh-rhoai/kueue-preemption)
+
+We will demostrate how to use quota allocation with Kueue with `Classical` preemption (not fair sharing)
+
+## Demo
+
+Setup ClusterQueue
+
+```
+make setup
+```
+
+Start the low priority job
+
+```
+make run
+```
+
+Start the high priority job in project-a which will preempt the lower priority workload
+
+```
+make run-priority
+```
 
 ## Overview
 In this example, there are 2 teams that work in their own namespace:
@@ -9,6 +31,7 @@ In this example, there are 2 teams that work in their own namespace:
 1. Both teams share a quota
 1. Team A has access to GPU while team B does not
 1. Team A has higher priority and can prempt others
+
 
 ### Kueue Configuration
 
@@ -34,27 +57,6 @@ spec:
   clusterQueue: team-a-cq
 ```
 
-When a Ray cluster is defined, it is submitted to the local queue with the associated priority.
-
-```yaml
-apiVersion: ray.io/v1
-kind: RayCluster
-metadata:
-  labels:
-    kueue.x-k8s.io/queue-name: local-queue
-    kueue.x-k8s.io/priority-class: dev-priority
-```
-
-### Ray cluster configuration
-
-> The shared quota is only up to 10 CPU for both teams.
-
-| Name                                   | CPU | Memory (GB) | GPU
-| -------------------------------------- | --- | ----------- | ----
-| [Team A](team-a-ray-cluster-prod.yaml) | 10  | 24          | 4
-| [Team B](team-b-ray-cluster-dev.yaml)  | 6   | 16          | 0
-
-
 ### Premption
 
 Team A cluster queue has preemption defined that can `borrowWithinCohort` of a lower priority which Team B belongs to.
@@ -74,7 +76,3 @@ spec:
 ```
 
 Team A will preempt team B because it has insufficient resources to run.
-
-
-
-Demo pulled and adapted from [this repo](https://github.com/opendatahub-io-contrib/ai-on-openshift/tree/main/docs/odh-rhoai/kueue-preemption)
