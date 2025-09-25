@@ -18,3 +18,6 @@ watch-project-b: ## Watch running pods in project-a namespace
 watch-queues: ## Watch all ClusterQueues and LocalQueues
 	watch -t 'echo "ClusterQueues, LocalQueues, WorkloadPriorityClass:" && \
 	    oc get clusterqueue,localqueue,workloadpriorityclass -A'
+
+setup: ## setup namespaces
+	oc apply --server-side -f namespace.yaml

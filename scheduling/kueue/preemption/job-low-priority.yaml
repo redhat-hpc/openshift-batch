@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  generateName: job-dev-
+  generateName: low-priority-
   labels:
     job/name: sleep
     job/all: "true"
